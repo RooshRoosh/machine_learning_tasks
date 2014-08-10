@@ -46,8 +46,8 @@ l4 = [
     [u"половины",u"половина",u"половини", u"половинкы", u"половинка", u"половинки"]
 ]
 
-test = []
+testdataset = []
 for data in [l1, l2, l3, l4, l5, l6, l7]:
     for item in data:
         for i in item:
-            test.append(i)
+            testdataset.append(i)

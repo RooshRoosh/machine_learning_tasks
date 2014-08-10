@@ -28,6 +28,9 @@ def clear_temp(temp=settings.TEMP_DIR):
             print e
 
 def load_dat_file(filename):
+    '''
+    Загрузчик файла с данными, исключительно под данную задачу
+    '''
     data = []
     with open(filename,'rb') as dat_file:
         for line in dat_file:
@@ -37,9 +40,3 @@ def load_dat_file(filename):
             row[-1] = int(row[-1])
             data.append(row)
     return data
-
-
-if __name__ == '__main__':
-    pass
-    # import pprint
-    # pprint.pprint(load_dat_file(os.path.join(settings.TEMP_DIR, 'led7digit.dat')))

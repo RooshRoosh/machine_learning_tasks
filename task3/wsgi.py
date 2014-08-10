@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Ruslan Talipov'
 
+import os
 import re
 import cgi
 import sys
@@ -17,12 +18,12 @@ class DemoApp:
     def __init__(self, test_mod = False):
 
         self.test_mod = test_mod # режим работы демона
-        self.has_model = False
         self.model = None
         self.urls = [
             ('^$', self.index),
             ('^upload_tra$', self.upload_tra),
-            ('^upload_tst$', self.upload_tst)
+            ('^upload_tst$', self.upload_tst),
+            ('^reset_model$', self.reset_model)
         ]
 
     def __call__(self, environ, start_response):
@@ -31,26 +32,34 @@ class DemoApp:
         start_response(status, response_headers)
         path = environ.get('PATH_INFO', '').lstrip('/')
 
-        flag = False
         for regex, callback in self.urls:
             match = re.search(regex, path)
             if match is not None:
-                flag = True
                 environ['myapp.url_args'] = match.groups()
                 return [callback(environ, start_response)]
-        if not flag:
-            return [self.not_found(environ, start_response)]
+
+        return [self.not_found(environ, start_response)]
+
+    def _get_model(self, filename):
+        if self.model:
+            model = self.model
+        else:
+            model = get_model(filename)
+        return model
 
     def index(self, environ, start_response):
         '''
             Отдаём страничку для тренировки загрузки
         '''
-        with open('templates/loadmodel.html','r') as template:
+        with open(os.path.join(settings.TEMPLATES_DIR,'loadmodel.html'),'r') as template:
             return template.read()
 
     def upload_tra(self, environ, start_response):
         '''
-            Создаём таск который отвечает за генерацию модели
+            Прямо в хендлере создаём модель, которую сохраним в.. инстансе приложения,
+            Модель после загрузки сделаем неизменяемой - чтобы загрузить новую модель,
+             не перезагружая приложение, нужно вызвать медот reset_model сделав запрос на '/reset_model'
+            Если Демон запущен в тестовом режиме, то тут же проверим данные
         '''
         clear_temp(settings.TEMP_DIR)
         form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ, keep_blank_values=True)
@@ -79,22 +88,22 @@ class DemoApp:
 
                 inner_html = ''
                 for pair in tra_tst_list:
-                    # Отдаём в модуль имя файла - получаем модель
-                    model = get_model(pair[0])
-                    self.model = model
-                    self.has_model = True
-                    # Отдаём модуль имя файла и модель - получаем html
-                    inner_html += get_result_in_html(model=model, datafile=pair[1], sourcefile=pair[0])
-                with open('templates/result.html','r') as template:
+                    # Отдаём имя файла с данными - получаем модель
+                    self.model = self._get_model(pair[0])
+                    # Отдаём модуль имя файла с тестовыми данными и модель - получаем html
+                    inner_html += get_result_in_html(
+                        model = self.model, # ?
+                        datafile=pair[1],
+                        sourcefile=pair[0],
+                        test_mod=self.test_mod
+                    )
+                with open(os.path.join(settings.TEMPLATES_DIR,'result.html'),'r') as template:
                     message = template.read().format(**{'content': inner_html})
             else:
                 # Грузим одну модель выкатываем приглашение загрузить тестовую
-                model = get_model(file_list[0])
-                self.model = model
-                self.has_model = True
-                with open('templates/wellcome_test.html','r') as template:
-                    message = template.read().format(**{'has_model':self.has_model})
-
+                self.model = self._get_model(file_list[0])
+                with open(os.path.join(settings.TEMPLATES_DIR,'wellcome_test.html'),'r') as template:
+                    message = template.read()
             return message
         else :
             message = 'please upload a file.'
@@ -105,7 +114,7 @@ class DemoApp:
         '''
             Чекаем есть ли модель, если есть даём результат
         '''
-        if self.has_model:
+        if self.model:
             clear_temp(settings.TEMP_DIR)
             form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ, keep_blank_values=True)
 
@@ -116,17 +125,22 @@ class DemoApp:
 
             if fileitem.file:
                 file_list = unpack(settings.TEMP_DIR, fileitem.file)
-                inner_html = get_result_in_html(model=self.model, datafile=file_list[0])
-                with open('templates/result.html','r') as template:
+                inner_html = get_result_in_html(
+                    model=self.model,
+                    datafile=file_list[0],
+                    test_mod=self.test_mod
+                )
+                with open(os.path.join(settings.TEMPLATES_DIR,'result.html'),'r') as template:
                     message = template.read().format(**{'content': inner_html})
                 return message
             else:
-                return u'Обязательно <a href="/">прикрепите файл</a>'
+                return 'Обязательно <a href="/">прикрепите файл</a>'
         else:
-            return u'Сначала <a href="/">загрузите модель</a>'
+            return 'Сначала <a href="/">создайте модель, загрузив обучающую выборку</a>'
 
     def reset_model(self, environ, start_response):
-        pass
+        self.model = None
+        return 'Модель сброшена, <a href="/">создайте новую, загрузив обучающую выборку</a>'
 
     def not_found(self, environ, start_response):
         return 'Страница не найдена, <a href="/">вернуться на главную</a>'
@@ -139,7 +153,6 @@ if __name__ == '__main__':
     else:
         test_mod = False
         mod = 'stage'
-
 
     httpd = make_server('', 8080, DemoApp(test_mod))
     print "Serving on port 8080... Mod: %s" % mod

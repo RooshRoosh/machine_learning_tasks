@@ -9,6 +9,9 @@ def euclidean_distance(point1, point2):
 
 
 def get_probability_class(distribution):
+    '''
+        отдаём случайный элемент с оглядкой на его вес относительно других элементов
+    '''
 
     summury = sum(distribution)
     value = 0
@@ -17,11 +20,12 @@ def get_probability_class(distribution):
     for i in distribution:
         master.append(value)
         value+=i/float(summury)
+
     master.append(1)
     result = random.random()
     index = 0
 
     while index < len(master)-1:
-        if master[index]<= result < master[index+1]:
+        if master[index]<=result<master[index+1]:
             return distribution[index]
         index +=1

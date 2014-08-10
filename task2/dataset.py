@@ -5,7 +5,7 @@ __author__ = 'Ruslan Talipov'
 import re
 
 from regexp_gen import _get_value, prematched_compiler
-from legacy import test
+from legacy import testdataset
 
 
 _UNITS = ur'(' \
@@ -32,9 +32,9 @@ __doc__ = '''
     ['', '2', '3', '5'] => '235'
 
 При необходимости добавить условие "?" элемент необходимо обернуть в Словарь и добавить "'require': False":
-    {'value': ('', '2', '3', '5'), 'require': False} => '(|2|3|5)'
+    {'value': ('', '2', '3', '5'), 'require': False} => '(|2|3|5)?'
 
-При необходиомости обособить группой произвольный набо символов необхоимо добавить к словаю "'group: True'"
+При необходиомости обособить группой произвольный набо символов необхоимо добавить к словарю "'group: True'"
     ['a', 'b', {'value':['1', ('А','Я'), '2'], group: True}] => 'ab(1(А|Я)2)'
     { 'value':[u'уп', {'value':[u'аков',(u'ки',u'ка',u'ок')],'require':False, group: True}]} => 'уп(аков(ки|ка|ок))?'
 
@@ -56,20 +56,14 @@ _UNITS2 = (
             },
             ur'\s*',
             {
-                'value':[
-                    u'л',
-                    {'value':[u'ож',(u'ек',u'ки',u'а')],'group':True}
-                ],
+                'value':[ u'л',{'value':[u'ож',(u'ек',u'ки',u'а')],'group':True}],
                 'require':False,
                 'alias':'ложки'
             }
         ]
     },
     {
-        'value':[
-            u'шт',
-            {'value':(u'ук',u'уки'),u'require':False},
-        ], 'alias': "штуки"
+        'value':[u'шт',{'value':(u'ук',u'уки'),u'require':False},], 'alias': "штуки"
     },
     {
         'value':[u'горст',(u'ь',u'ей')], 'alias':'горстей'
@@ -77,10 +71,7 @@ _UNITS2 = (
     {
         'value':[
             {
-                'value':[
-                    u'к',
-                    {'value':u'ило','group':True,'require':False}
-                ],
+                'value':[u'к',{'value':u'ило','group':True,'require':False}],
                 'group':True,'require':False
             },
             {'value': [
@@ -98,17 +89,11 @@ _UNITS2 = (
     {
         'value':[
             {
-                'value': [
-                    u'м',
-                    {'value':u'илли','group': True,'require': False}
-                ],
+                'value': [u'м',{'value':u'илли','group': True,'require': False}],
                 'group': True, 'require': False
             },
             {
-                'value': [
-                    u'л',
-                    {'value': u'итра', 'group':True, 'require': False}
-                ],
+                'value': [u'л',{'value': u'итра', 'group':True, 'require': False}],
                 'require': False
             }
         ], 'alias':'миллилитры'

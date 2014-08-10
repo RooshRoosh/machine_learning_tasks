@@ -9,10 +9,12 @@ from fileutils import load_dat_file
 from settings import TEMPLATES_DIR
 
 def get_model(filename):
+    '''
+        Билдим модель
+    '''
     data = load_dat_file(filename)
-
     model = HybridModel(10)
-    # model = CoreModel()
+    # model = CoreModel() # другие варианты
     # model = FullScanModel(5)
     for item in data:
         model.add_point(item[:-1],item[-1])
@@ -20,6 +22,9 @@ def get_model(filename):
     return model
 
 def get_result_in_html(model, datafile, sourcefile='', test_mod=False):
+    '''
+        Шаблонизируем результаты расчётов
+    '''
     templatefile = os.path.join(TEMPLATES_DIR, 'outtable.html')
     datafile = datafile
     row_list =  load_dat_file(datafile)
