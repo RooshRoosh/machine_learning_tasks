@@ -5,24 +5,23 @@ __author__ = 'Ruslan Talipov'
 import os
 
 from net import Net
-from means import Model
+from means import FullScanModel
 from fileutils import load_dat_file
 from settings import TEMPLATES_DIR
 
 def get_model(filename):
     data = load_dat_file(filename)
-    input_size = 7
-    # model = Net(input_size)
-    model = Model(10)
+
+    model = FullScanModel(5)
     for item in data:
         model.add_point(item[:-1],item[-1])
-        # model.trainquery(item[:-1], item[-1:], item[-1])
+
 
     return model
 
 def get_result_in_html(model, pair):
     templatefile = os.path.join(TEMPLATES_DIR, 'outtable.html')
-    filedata = pair[0]
+    filedata = pair[1]
     row_list =  load_dat_file(filedata)
     table_out = ''
     error_count = 0
@@ -33,7 +32,7 @@ def get_result_in_html(model, pair):
             row_out+= '<td class="col-md-1">%s</td>' % td
         model_result = model.get_result(row[:-1])
 
-        if model_result == td:
+        if model_result == td: # в последней ячейке правильный класс
             r_td = 'class="success"'
         else:
             r_td = 'class="danger"'

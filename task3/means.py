@@ -4,9 +4,7 @@ __author__ = 'Ruslan Talipov'
 
 from distance_utils import euclidean_distance
 
-import pprint
-
-class Model():
+class FullScanModel(object):
 
     def __init__(self, k):
         self.point_list = []
@@ -42,5 +40,5 @@ class Model():
         fav_class_items = fav_class.items()
 
         fav_class_items.sort(key = lambda x:x[1])
-        return fav_class_items#[-1][0]
+        return fav_class_items[-1][0]
 
