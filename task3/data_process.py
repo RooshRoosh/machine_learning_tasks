@@ -4,23 +4,25 @@ __author__ = 'Ruslan Talipov'
 
 import os
 
-from means import FullScanModel,CoreModel
+from means import FullScanModel, CoreModel, HybridModel
 from fileutils import load_dat_file
 from settings import TEMPLATES_DIR
 
 def get_model(filename):
     data = load_dat_file(filename)
 
-    model = CoreModel() #FullScanModel(5)
+    model = HybridModel(10)
+    # model = CoreModel()
+    # model = FullScanModel(5)
     for item in data:
         model.add_point(item[:-1],item[-1])
 
     return model
 
-def get_result_in_html(model, pair):
+def get_result_in_html(model, datafile, sourcefile='', test_mod=False):
     templatefile = os.path.join(TEMPLATES_DIR, 'outtable.html')
-    filedata = pair[1]
-    row_list =  load_dat_file(filedata)
+    datafile = datafile
+    row_list =  load_dat_file(datafile)
     table_out = ''
     error_count = 0
     for row in row_list:
@@ -28,7 +30,13 @@ def get_result_in_html(model, pair):
 
         for td in row:
             row_out+= '<td class="col-md-1">%s</td>' % td
-        model_result = model.get_result(row[:-1])
+
+        # В тестовых разбиениях так же присутствует метка класса
+        # Но в боевой выборке она видимо должна отсутствовать?
+        if test_mod: # Если мы проверяемся на тестовых данных, то мы подрезаем метку класса
+            model_result = model.get_result(row[:-1])
+        else: # Если мы работаем с боевым файлом то мы съедаем всю строку целиком
+            model_result = model.get_result(row)
 
         if model_result == td: # в последней ячейке правильный класс
             r_td = 'class="success"'
@@ -47,7 +55,7 @@ def get_result_in_html(model, pair):
             'row_count': len(row_list),
             'error_count': error_count,
             'table': table,
-            'filedata': os.path.split(pair[1])[1],
-            'filemodel': os.path.split(pair[0])[1]
+            'filedata': os.path.split(datafile)[1],
+            'filemodel': os.path.split(sourcefile)[1]
         })
     return  template

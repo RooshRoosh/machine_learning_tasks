@@ -16,9 +16,8 @@ def get_probability_class(distribution):
 
     for i in distribution:
         master.append(value)
-        value+=i/summury
+        value+=i/float(summury)
     master.append(1)
-
     result = random.random()
     index = 0
 
