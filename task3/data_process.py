@@ -4,18 +4,16 @@ __author__ = 'Ruslan Talipov'
 
 import os
 
-from net import Net
-from means import FullScanModel
+from means import FullScanModel,CoreModel
 from fileutils import load_dat_file
 from settings import TEMPLATES_DIR
 
 def get_model(filename):
     data = load_dat_file(filename)
 
-    model = FullScanModel(5)
+    model = CoreModel() #FullScanModel(5)
     for item in data:
         model.add_point(item[:-1],item[-1])
-
 
     return model
 
