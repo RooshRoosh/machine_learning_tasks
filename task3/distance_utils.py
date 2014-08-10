@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 __author__ = 'Ruslan Talipov'
+
 from math import sqrt
 import random
 

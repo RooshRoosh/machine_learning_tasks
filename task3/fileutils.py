@@ -3,7 +3,6 @@
 __author__ = 'Ruslan Talipov'
 
 
-# from zipfile import ZipFile
 import settings
 import os
 import numpy
